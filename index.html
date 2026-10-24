@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#7b1023">
+  <meta name="description" content="Una piccola sorpresa speciale per Carlotta.">
+  <title>Per Carlotta ♥</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&family=Parisienne&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+  <div class="floating-hearts" id="floatingHearts" aria-hidden="true"></div>
+
+  <main>
+    <section class="screen intro active" id="intro">
+      <p class="eyebrow">UNA PICCOLA SORPRESA</p>
+      <div class="envelope-wrap" id="introEnvelope" role="button" tabindex="0" aria-label="Apri la busta">
+        <div class="envelope-shadow"></div>
+        <div class="envelope">
+          <div class="letter-peek"><span>Per Carlotta</span><small>con tutto il mio cuore</small></div>
+          <div class="env-back"></div>
+          <div class="env-left"></div><div class="env-right"></div>
+          <div class="env-flap"></div>
+          <div class="seal">♥</div>
+        </div>
+      </div>
+      <h1>Per te, <em>Carlotta.</em></h1>
+      <p class="intro-copy">Ho preparato qualcosa che parla un po' di noi.<br>Apri quando sei pronta.</p>
+      <button class="primary-btn" id="openIntro">Apri la sorpresa <span>♥</span></button>
+      <p class="tiny-note">fatto con amore, solo per te</p>
+    </section>
+
+    <section class="screen menu-screen" id="menu">
+      <p class="eyebrow">UN PICCOLO MONDO TUTTO NOSTRO</p>
+      <h2>Choose the <em>Surprise</em></h2>
+      <p class="section-lead">Scegli da dove cominciare, amore.</p>
+      <div class="surprise-grid">
+        <button class="surprise-card" data-go="memories"><span class="illustration camera">▣</span><strong>Our Memories</strong><small>piccoli pezzi di noi</small></button>
+        <button class="surprise-card" data-go="time"><span class="illustration clock">♡</span><strong>Our Time</strong><small>la nostra storia</small></button>
+        <button class="surprise-card" data-go="song"><span class="illustration vinyl">♫</span><strong>Our Song</strong><small>una canzone, mille ricordi</small></button>
+        <button class="surprise-card" data-go="letter"><span class="illustration letter-icon">✉</span><strong>A Special Letter</strong><small>qualcosa che voglio dirti</small></button>
+      </div>
+      <button class="text-btn" data-go="final">C'è anche un'ultima sorpresa →</button>
+    </section>
+
+    <section class="screen content-screen" id="memories">
+      <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
+      <p class="eyebrow">I NOSTRI MOMENTI</p><h2>Our <em>Memories</em></h2>
+      <p class="section-lead">Le foto più belle sono quelle che diventano ricordi.</p>
+      <div class="photo-grid" id="photoGrid">
+        <button class="polaroid tilt-left" data-photo="1"><div class="photo-placeholder"><span>✿</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Un ricordo da custodire</span></button>
+        <button class="polaroid tilt-right" data-photo="2"><div class="photo-placeholder blush"><span>♥</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Quel momento speciale</span></button>
+        <button class="polaroid tilt-left" data-photo="3"><div class="photo-placeholder pale"><span>☼</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Una giornata insieme</span></button>
+        <button class="polaroid tilt-right" data-photo="4"><div class="photo-placeholder dark"><span>♡</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Il mio posto preferito</span></button>
+      </div>
+      <p class="hint">Puoi sostituire i riquadri con le vostre foto: trovi le istruzioni nel file LEGGIMI.</p>
+    </section>
+
+    <section class="screen content-screen" id="time">
+      <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
+      <p class="eyebrow">DA QUANDO È COMINCIATO TUTTO</p><h2>Our <em>Time</em></h2>
+      <p class="section-lead">Ogni storia è fatta di momenti che diventano importanti.</p>
+      <div class="time-card">
+        <div class="time-heart">♥</div>
+        <p class="small-caps">IL NOSTRO TEMPO INSIEME</p>
+        <div class="counter" id="counter"><span>—</span><small>imposta la data nel file script.js</small></div>
+        <p class="time-message">E il bello è che ci sono ancora tanti ricordi da creare.</p>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item"><span class="timeline-dot">♥</span><div><strong>Il primo capitolo</strong><p>Il giorno in cui le nostre strade si sono incrociate.</p></div></div>
+        <div class="timeline-item"><span class="timeline-dot">✦</span><div><strong>Un momento speciale</strong><p>Un ricordo che porterò sempre con me.</p></div></div>
+        <div class="timeline-item"><span class="timeline-dot">∞</span><div><strong>Tutto quello che verrà</strong><p>La parte più bella della storia deve ancora essere scritta.</p></div></div>
+      </div>
+      <p class="hint">Le date e i testi sono personalizzabili in <code>script.js</code>.</p>
+    </section>
+
+    <section class="screen content-screen song-screen" id="song">
+      <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
+      <p class="eyebrow">LA COLONNA SONORA DI NOI</p><h2>Our <em>Song</em></h2>
+      <p class="section-lead">Ci sono canzoni che fanno tornare in mente una persona.</p>
+      <div class="record-player">
+        <div class="vinyl" id="vinyl"><div class="record-label">C<br><span>♥</span></div></div>
+        <div class="tonearm"></div>
+      </div>
+      <audio id="songAudio" preload="none" src="public/audio/nostra-canzone.mp3"></audio>
+      <button class="primary-btn" id="playSong">▶ Ascolta la nostra canzone</button>
+      <p class="hint" id="audioHint">Aggiungi il tuo brano in public/audio/nostra-canzone.mp3</p>
+    </section>
+
+    <section class="screen content-screen letter-screen" id="letter">
+      <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
+      <p class="eyebrow">QUALCOSA CHE VOGLIO DIRTI</p><h2>A Special <em>Letter</em></h2>
+      <div class="letter-paper">
+        <div class="letter-decoration">♥</div>
+        <p class="letter-dear">Carlotta,</p>
+        <div class="letter-body" id="letterBody">
+          <p>non sempre è facile trovare le parole giuste per dire a qualcuno quanto sia speciale.</p>
+          <p>Per questo ho voluto creare qualcosa che fosse solo tuo: un piccolo posto dove raccogliere ricordi, musica e parole che contano.</p>
+          <p>Grazie per essere una parte così bella della mia vita. Spero che, ogni volta che tornerai qui, ti ricordi quanto sei importante per me.</p>
+          <p class="letter-sign">Con tutto il mio cuore, <span>♥</span></p>
+        </div>
+        <div class="wax-seal">C ♥</div>
+      </div>
+    </section>
+
+    <section class="screen final-screen" id="final">
+      <p class="eyebrow">PRIMA DI ANDARE...</p>
+      <div class="final-envelope" id="finalEnvelope" role="button" tabindex="0" aria-label="Apri l'ultima busta">
+        <div class="final-paper">Sei una parte bellissima della mia storia.<br><span>♥</span></div>
+        <div class="final-env"><div class="final-flap"></div><div class="final-seal">♥</div></div>
+      </div>
+      <h2>One Last <em>Surprise</em></h2>
+      <p class="final-message" id="finalMessage">Carlotta, se potessi scegliere ancora, sceglierei di regalarti questo sorriso un'altra volta.</p>
+      <button class="primary-btn" data-go="intro">Ricomincia da capo ↻</button>
+      <p class="tiny-note">questa piccola sorpresa è tutta tua ♥</p>
+    </section>
+  </main>
+
+  <div class="photo-modal" id="photoModal" aria-hidden="true"><button id="closeModal" aria-label="Chiudi">×</button><div class="modal-content"><span>♥</span><p>Qui puoi aggiungere una vostra foto speciale.</p><small>Sostituisci il segnaposto seguendo LEGGIMI.</small></div></div>
+  <footer>realizzato con amore <span>♥</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>
