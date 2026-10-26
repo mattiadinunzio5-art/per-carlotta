@@ -118,9 +118,6 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .steps li[data-status="done"]::before { content: "✓"; display: grid; place-items: center; background: var(--good); border-color: var(--good); color: #fff; font-size: 0.75rem; font-weight: 700; }
 .steps li[data-status="skipped"] { text-decoration: line-through; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.live { max-height: 260px; overflow: auto; }
-.live-text { white-space: pre-wrap; font-size: 0.9rem; color: var(--muted); }
-.live-text:empty::before { content: "In attesa della risposta…"; }
 
 /* result */
 .result-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
@@ -213,3 +210,11 @@ dialog h2 { margin-top: 0; }
   .print-page .slide { box-shadow: none; aspect-ratio: auto; min-height: 120mm; overflow: visible; font-size: 15pt; }
   .print-notes { font-size: 11pt; color: #333; margin-top: 8mm; }
 }
+
+.ai-status { margin: 0 0 16px; color: var(--muted); }
+.ai-status strong { color: var(--ink); overflow-wrap: anywhere; }
+.fail-box summary { cursor: pointer; font-weight: 600; }
+.fail-box ul { margin: 10px 0 0; padding-left: 1.2em; overflow-wrap: anywhere; }
+.key-field { padding: 12px 0; border-top: 1px solid var(--line); }
+.key-field p { margin: 0 0 8px; }
+dialog { max-height: 90vh; overflow: auto; }

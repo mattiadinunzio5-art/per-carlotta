@@ -81,7 +81,7 @@
         <div>
           <label class="field-label" for="webInput">Ricerca sul web</label>
           <select id="webInput">
-            <option value="on" selected>Sì, integra con dati dal web</option>
+            <option value="on" selected>Sì, integra con Wikipedia</option>
             <option value="off">No, usa solo il mio materiale</option>
           </select>
         </div>
@@ -95,14 +95,17 @@
     <section class="view" id="viewWorking">
       <h1>Ci sto lavorando…</h1>
       <ol class="steps" id="steps">
-        <li data-step="read">Leggo le pagine e gli appunti</li>
+        <li data-step="read">Leggo le pagine e scrivo la scheda</li>
         <li data-step="web">Cerco approfondimenti sul web</li>
-        <li data-step="notes">Scrivo riassunto e spiegazione semplice</li>
         <li data-step="slides">Preparo la presentazione e il quiz</li>
       </ol>
-      <div class="live card" id="liveBox"><div class="live-text" id="liveText"></div></div>
-      <p class="muted small" id="workingNote">Di solito ci vogliono 1–3 minuti. Non chiudere la pagina.</p>
+      <p class="ai-status">AI al lavoro: <strong id="aiStatus">—</strong></p>
+      <p class="muted small" id="workingNote">Di solito ci vuole un minuto o due. Non chiudere la pagina. Se un'AI ha finito i limiti gratuiti, passo da sola alla successiva.</p>
       <p class="error" id="workingError" hidden></p>
+      <details class="card fail-box" id="failBox" hidden>
+        <summary>AI saltate (limite finito o non disponibili)</summary>
+        <ul class="small muted" id="failLog"></ul>
+      </details>
       <button class="btn secondary" id="cancelBtn" type="button">Annulla</button>
     </section>
 
@@ -112,6 +115,7 @@
         <div>
           <p class="eyebrow" id="resultTopic"></p>
           <h1 id="resultTitle">Il tuo studio</h1>
+          <p class="muted small" id="resultAI"></p>
         </div>
         <button class="btn secondary" id="newBtn" type="button">+ Nuovo studio</button>
       </div>
@@ -171,9 +175,8 @@
   <dialog id="settingsDialog">
     <form method="dialog" id="settingsForm">
       <h2>Impostazioni</h2>
-      <p class="muted small">L'app usa Claude di Anthropic. Serve una chiave API personale: creala su <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. La chiave resta salvata solo in questo browser e viene inviata solo ad Anthropic.</p>
-      <label class="field-label" for="apiKeyInput">Chiave API Anthropic</label>
-      <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-ant-…">
+      <p class="muted small">L'app usa intelligenze artificiali con piani gratuiti. Crea una chiave gratuita per una o più di queste (più ne metti, più puoi studiare ogni giorno): l'app le prova in quest'ordine e, quando una finisce i limiti gratuiti, passa alla successiva. Le chiavi restano salvate solo in questo browser e ognuna viene inviata solo al proprio servizio.</p>
+      <div id="keyFields"></div>
       <div class="dialog-actions">
         <button class="btn ghost" value="cancel" type="submit">Chiudi</button>
         <button class="btn primary" id="saveKeyBtn" value="save" type="submit">Salva</button>

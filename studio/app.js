@@ -1,17 +1,17 @@
-// Anthropic TypeScript SDK 1.3.0, bundled for the browser (see vendor/README.md).
-import Anthropic from "./vendor/anthropic-sdk.mjs";
+import { PROVIDERS, ask, parseJSON, ProviderError } from "./providers.js";
 
-const MODEL = "claude-opus-5-5";
-const KEY_STORAGE = "studio.apiKey";
+const KEYS_STORAGE = "studio.keys";
 const HISTORY_STORAGE = "studio.history";
-const MAX_IMAGE_SIDE = 1800;
-const MAX_TOTAL_BYTES = 28 * 1024 * 1024; // the API caps a request at 32 MB
+const MAX_IMAGE_SIDE = 1600;
+const MAX_PDF_PAGES = 40;
+const MAX_IMAGES = 20;
 
 const $ = (id) => document.getElementById(id);
 
 const state = {
-  files: [], // { id, name, kind: "image" | "pdf", mediaType, data (base64), preview, bytes }
-  result: null, // { id, createdAt, topic, title, notes, sources, deck }
+  // { id, name, kind: "image" | "pdf", images: [{ mediaType, data }], text, preview, pages }
+  files: [],
+  result: null, // { id, createdAt, topic, title, notes, sources, deck, ai }
   slideIndex: 0,
   abort: null,
 };
@@ -36,6 +36,9 @@ function save(key, value) {
   }
 }
 
+const keys = () => load(KEYS_STORAGE, {});
+const hasKey = () => Object.values(keys()).some(Boolean);
+
 /* ---------- views ---------- */
 
 function show(viewId) {
@@ -50,16 +53,23 @@ function showError(el, message) {
 
 /* ---------- file handling ---------- */
 
-function readAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
+function canvasToImage(canvas) {
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+  return { mediaType: "image/jpeg", data: dataUrl.split(",")[1], preview: dataUrl };
 }
 
-// Phone photos are often 5-12 MB: shrink them so they stay readable but fit the request.
+function fitCanvas(width, height) {
+  const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(width, height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  return { canvas, ctx, scale };
+}
+
+// Phone photos are often 5-12 MB: shrink them so they stay readable but light.
 async function prepareImage(file) {
   const url = URL.createObjectURL(file);
   try {
@@ -69,19 +79,44 @@ async function prepareImage(file) {
       el.onerror = () => reject(new Error(`Non riesco ad aprire l'immagine "${file.name}".`));
       el.src = url;
     });
-    const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.naturalWidth * scale);
-    canvas.height = Math.round(img.naturalHeight * scale);
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const { canvas, ctx } = fitCanvas(img.naturalWidth, img.naturalHeight);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-    return { kind: "image", mediaType: "image/jpeg", data: dataUrl.split(",")[1], preview: dataUrl };
+    const image = canvasToImage(canvas);
+    return { kind: "image", images: [image], text: "", preview: image.preview };
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+let pdfjs = null;
+
+// Free AIs can't all read PDFs: take the text out of each page, and turn the
+// pages that have no text (scans, photos) into images.
+async function preparePdf(file) {
+  if (!pdfjs) {
+    pdfjs = await import("./vendor/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL("./vendor/pdf.worker.min.mjs", import.meta.url).href;
+  }
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const pages = Math.min(doc.numPages, MAX_PDF_PAGES);
+  const texts = [];
+  const images = [];
+  for (let n = 1; n <= pages; n++) {
+    const page = await doc.getPage(n);
+    const content = await page.getTextContent();
+    const text = content.items.map((it) => (it.str || "") + (it.hasEOL ? "\n" : " ")).join("").trim();
+    if (text.length >= 150) {
+      texts.push(`[Pagina ${n}]\n${text}`);
+    } else {
+      const base = page.getViewport({ scale: 1 });
+      const { canvas, ctx, scale } = fitCanvas(base.width * 2, base.height * 2);
+      await page.render({ canvasContext: ctx, viewport: page.getViewport({ scale: 2 * scale }) }).promise;
+      const { mediaType, data } = canvasToImage(canvas);
+      images.push({ mediaType, data });
+    }
+  }
+  const note = doc.numPages > pages ? `\n[Il PDF ha ${doc.numPages} pagine: lette solo le prime ${pages}.]` : "";
+  return { kind: "pdf", images, text: texts.join("\n\n") + note, preview: null, pages: doc.numPages };
 }
 
 async function addFiles(fileList) {
@@ -90,8 +125,7 @@ async function addFiles(fileList) {
     try {
       let entry;
       if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
-        const dataUrl = await readAsDataURL(file);
-        entry = { kind: "pdf", mediaType: "application/pdf", data: dataUrl.split(",")[1], preview: null };
+        entry = await preparePdf(file);
       } else if (file.type.startsWith("image/") || /\.(heic|heif)$/i.test(file.name)) {
         entry = await prepareImage(file);
       } else {
@@ -99,10 +133,10 @@ async function addFiles(fileList) {
       }
       entry.id = crypto.randomUUID();
       entry.name = file.name || (entry.kind === "pdf" ? "documento.pdf" : "foto.jpg");
-      entry.bytes = Math.ceil((entry.data.length * 3) / 4);
       state.files.push(entry);
     } catch (err) {
-      showError($("inputError"), err.message);
+      console.error(err);
+      showError($("inputError"), err.message || `Non riesco a leggere "${file.name}".`);
     }
   }
   renderFileList();
@@ -126,9 +160,9 @@ function renderFileList() {
     const name = document.createElement("span");
     name.className = "file-name";
     name.textContent = `${i + 1}. ${f.name}`;
-    const size = document.createElement("span");
-    size.className = "muted small";
-    size.textContent = f.bytes < 1024 * 1024 ? `${Math.ceil(f.bytes / 1024)} KB` : `${(f.bytes / 1024 / 1024).toFixed(1)} MB`;
+    const info = document.createElement("span");
+    info.className = "muted small";
+    info.textContent = f.kind === "pdf" ? `${f.pages} pag.` : "foto";
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "ghost";
@@ -138,23 +172,19 @@ function renderFileList() {
       state.files = state.files.filter((x) => x.id !== f.id);
       renderFileList();
     };
-    li.append(thumb, name, size, remove);
+    li.append(thumb, name, info, remove);
     list.append(li);
   });
 }
 
-/* ---------- Claude ---------- */
+/* ---------- prompts ---------- */
 
 const SYSTEM_PROMPT = `Sei un tutor paziente e preciso. Aiuti uno studente a capire e ricordare il materiale che ti manda (foto di pagine di libro, PDF, appunti). Scrivi sempre in italiano, in modo chiaro e adatto al livello indicato. Resta fedele al materiale: se una parte di una foto è illeggibile o tagliata, dillo invece di inventare.`;
 
-function notesPrompt({ topic, level, notes, web }) {
-  const webSection = web
-    ? `## Approfondimenti dal web
-Cerca sul web informazioni che integrano il materiale senza ripeterlo: dati aggiornati, date, numeri, esempi reali, curiosità utili a ricordare, collegamenti con altri argomenti. Preferisci fonti affidabili (enciclopedie, università, istituzioni, siti specializzati). Per ogni integrazione scrivi il nome della fonte tra parentesi. Se il web contraddice il materiale, segnalalo chiaramente.`
-    : "";
+function notesPrompt({ topic, level, notes, web }, pdfText) {
   return `${topic ? `Argomento: ${topic}\n` : ""}Livello dello studente: ${level}
 
-Prepara una scheda di studio in Markdown con queste sezioni, in quest'ordine:
+Prepara una scheda di studio in Markdown sul materiale${state.files.some((f) => f.images.length) ? " (le immagini allegate sono le pagine da studiare)" : ""}, con queste sezioni, in quest'ordine:
 
 ## Di cosa parla
 Due o tre frasi che danno il quadro generale.
@@ -165,15 +195,27 @@ I contenuti del materiale, completi ma senza ripetizioni, organizzati in sottose
 ## Spiegato semplice
 I passaggi più difficili spiegati con parole semplici, esempi concreti e analogie della vita di tutti i giorni.
 
-${webSection}
-
 ## Parole chiave
 Un piccolo glossario: termine — definizione breve.
 
 ## Da ricordare
 Da 5 a 10 punti essenziali, quelli che servirebbero in un'interrogazione o in un esame.
 
-Scrivi solo la scheda, senza introduzioni o commenti finali.${notes ? `\n\nAppunti dello studente:\n"""\n${notes}\n"""` : ""}`;
+Scrivi solo la scheda, senza introduzioni o commenti finali.${web ? `
+Come ultima riga, dopo la scheda, scrivi da 2 a 4 ricerche da fare su Wikipedia per approfondire, in questo formato esatto:
+RICERCHE: prima ricerca | seconda ricerca | terza ricerca` : ""}${pdfText ? `\n\nTesto dei PDF:\n"""\n${pdfText}\n"""` : ""}${notes ? `\n\nAppunti dello studente:\n"""\n${notes}\n"""` : ""}`;
+}
+
+function webPrompt(notes, articles) {
+  return `Questa è una scheda di studio:
+"""
+${notes}
+"""
+
+Questi sono estratti di articoli di Wikipedia sullo stesso argomento:
+${articles.map((a, i) => `[${i + 1}] ${a.title}\n${a.extract}`).join("\n\n")}
+
+Scrivi la sezione "## Approfondimenti dal web" della scheda: informazioni utili degli estratti che integrano la scheda senza ripeterla (date, dati, esempi, curiosità che aiutano a ricordare, collegamenti con altri argomenti). Usa solo quello che c'è negli estratti e, dopo ogni informazione, indica la fonte con il numero tra parentesi quadre, es. [2]. Se un estratto contraddice la scheda, segnalalo. Se gli estratti non aggiungono niente di utile, scrivi solo il titolo e una riga che lo dice. Scrivi solo la sezione, in Markdown.`;
 }
 
 function deckPrompt({ notes, level, slides }) {
@@ -182,8 +224,11 @@ function deckPrompt({ notes, level, slides }) {
 Regole:
 - Si parte dal quadro generale e si va verso i dettagli; l'ultima slide è un riepilogo.
 - Ogni slide ha un titolo breve, da 2 a 4 punti brevi (massimo 15 parole l'uno), un'emoji adatta, una spiegazione discorsiva di 3-6 frasi per chi ripassa da solo, e un esempio concreto o un trucco per ricordare (stringa vuota se non serve).
-- Includi anche le informazioni utili prese dal web.
+- Includi anche gli approfondimenti dal web, se ci sono.
 - Poi scrivi 6 domande di quiz a risposta multipla (4 opzioni, una sola corretta) che verificano la comprensione, non solo la memoria. "corretta" è l'indice (da 0 a 3) dell'opzione giusta.
+
+Rispondi solo con un oggetto JSON valido, senza altro testo, con questa struttura:
+{"titolo": "...", "sottotitolo": "...", "slides": [{"titolo": "...", "emoji": "...", "punti": ["..."], "spiegazione": "...", "esempio": "..."}], "quiz": [{"domanda": "...", "opzioni": ["...", "...", "...", "..."], "corretta": 0, "spiegazione": "..."}]}
 
 Scheda:
 """
@@ -191,174 +236,59 @@ ${notes}
 """`;
 }
 
-const DECK_SCHEMA = {
-  type: "object",
-  additionalProperties: false,
-  required: ["titolo", "sottotitolo", "slides", "quiz"],
-  properties: {
-    titolo: { type: "string" },
-    sottotitolo: { type: "string" },
-    slides: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["titolo", "emoji", "punti", "spiegazione", "esempio"],
-        properties: {
-          titolo: { type: "string" },
-          emoji: { type: "string" },
-          punti: { type: "array", items: { type: "string" } },
-          spiegazione: { type: "string" },
-          esempio: { type: "string" },
-        },
-      },
-    },
-    quiz: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["domanda", "opzioni", "corretta", "spiegazione"],
-        properties: {
-          domanda: { type: "string" },
-          opzioni: { type: "array", items: { type: "string" } },
-          corretta: { type: "integer" },
-          spiegazione: { type: "string" },
-        },
-      },
-    },
-  },
-};
+const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
 
-function client() {
-  const apiKey = load(KEY_STORAGE, "");
-  return new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+// Free models sometimes bend the format: normalise it, and reject it if unusable.
+function validateDeck(text) {
+  const raw = parseJSON(text);
+  const slides = (Array.isArray(raw.slides) ? raw.slides : [])
+    .filter((s) => s && s.titolo)
+    .map((s) => ({
+      titolo: str(s.titolo),
+      emoji: str(s.emoji),
+      punti: (Array.isArray(s.punti) ? s.punti : [s.punti]).map(str).filter(Boolean),
+      spiegazione: str(s.spiegazione),
+      esempio: str(s.esempio),
+    }));
+  if (slides.length < 2) throw new ProviderError("presentazione incompleta");
+  const quiz = (Array.isArray(raw.quiz) ? raw.quiz : [])
+    .map((q) => ({ domanda: str(q?.domanda), opzioni: (Array.isArray(q?.opzioni) ? q.opzioni : []).map(str), corretta: Number(q?.corretta), spiegazione: str(q?.spiegazione) }))
+    .filter((q) => q.domanda && q.opzioni.length >= 2 && Number.isInteger(q.corretta) && q.corretta >= 0 && q.corretta < q.opzioni.length);
+  return { titolo: str(raw.titolo) || slides[0].titolo, sottotitolo: str(raw.sottotitolo), slides, quiz };
 }
 
-// Shared request options: server-side fallback re-runs a request the model's
-// safety classifiers decline, instead of returning the refusal.
-const BASE = {
-  model: MODEL,
-  betas: ["server-side-fallback-2026-07-01"],
-  fallbacks: "default",
-};
+/* ---------- Wikipedia ---------- */
 
-function checkStop(message) {
-  if (message.stop_reason === "refusal") {
-    throw new Error("Claude non ha potuto elaborare questo materiale. Prova con contenuti diversi.");
+async function wikipedia(queries, signal) {
+  const api = "https://it.wikipedia.org/w/api.php";
+  const ids = new Set();
+  for (const q of queries) {
+    const params = new URLSearchParams({ action: "query", list: "search", srsearch: q, srlimit: "1", format: "json", origin: "*" });
+    const res = await fetch(`${api}?${params}`, { signal });
+    const data = await res.json();
+    for (const hit of data?.query?.search || []) ids.add(hit.pageid);
   }
+  if (!ids.size) return [];
+  const params = new URLSearchParams({
+    action: "query", prop: "extracts|info", inprop: "url", explaintext: "1", exchars: "2500",
+    pageids: [...ids].join("|"), format: "json", origin: "*",
+  });
+  const res = await fetch(`${api}?${params}`, { signal });
+  const data = await res.json();
+  return Object.values(data?.query?.pages || {})
+    .filter((p) => p.extract)
+    .map((p) => ({ title: p.title, url: p.fullurl, extract: p.extract }));
 }
+
+/* ---------- pipeline ---------- */
 
 function setStep(step, status) {
   const li = document.querySelector(`#steps [data-step="${step}"]`);
   if (li) li.dataset.status = status;
 }
 
-async function buildNotes(anthropic, input, signal) {
-  const content = [];
-  for (const f of state.files) {
-    if (f.kind === "pdf") {
-      content.push({ type: "document", source: { type: "base64", media_type: f.mediaType, data: f.data }, title: f.name });
-    } else {
-      content.push({ type: "image", source: { type: "base64", media_type: f.mediaType, data: f.data } });
-    }
-  }
-  content.push({ type: "text", text: notesPrompt(input) });
-
-  const messages = [{ role: "user", content }];
-  const tools = input.web ? [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }] : [];
-  const sources = new Map();
-  let text = "";
-
-  setStep("read", "active");
-  // Web search can pause a long turn (pause_turn): send the turn back to let it continue.
-  for (let round = 0; round < 5; round++) {
-    const stream = anthropic.beta.messages.stream(
-      {
-        ...BASE,
-        max_tokens: 64000,
-        output_config: { effort: "high" },
-        system: SYSTEM_PROMPT,
-        tools,
-        messages,
-      },
-      { signal },
-    );
-    stream.on("streamEvent", (event) => {
-      if (event.type === "content_block_start") {
-        if (event.content_block.type === "server_tool_use") {
-          setStep("read", "done");
-          setStep("web", "active");
-        } else if (event.content_block.type === "text") {
-          setStep("read", "done");
-          if (input.web) setStep("web", "done");
-          setStep("notes", "active");
-        }
-      }
-    });
-    stream.on("text", (delta) => {
-      text += delta;
-      $("liveText").textContent = text.slice(-1500);
-      $("liveBox").scrollTop = $("liveBox").scrollHeight;
-    });
-    const message = await stream.finalMessage();
-    checkStop(message);
-
-    for (const block of message.content) {
-      if (block.type === "web_search_tool_result" && Array.isArray(block.content)) {
-        for (const r of block.content) sources.set(r.url, r.title || r.url);
-      }
-      if (block.type === "text" && block.citations) {
-        for (const c of block.citations) if (c.url) sources.set(c.url, c.title || c.url);
-      }
-    }
-
-    if (message.stop_reason !== "pause_turn") break;
-    messages.push({ role: "assistant", content: message.content });
-  }
-
-  if (!text.trim()) throw new Error("Non ho ricevuto nessun testo. Riprova.");
-  setStep("read", "done");
-  setStep("web", input.web ? "done" : "skipped");
-  setStep("notes", "done");
-  return { notes: text.trim(), sources: [...sources].map(([url, title]) => ({ url, title })) };
-}
-
-async function buildDeck(anthropic, notes, input, signal) {
-  setStep("slides", "active");
-  $("liveText").textContent = "Sto impaginando le slide e scrivendo le domande del quiz…";
-  const stream = anthropic.beta.messages.stream(
-    {
-      ...BASE,
-      max_tokens: 32000,
-      output_config: { effort: "medium", format: { type: "json_schema", schema: DECK_SCHEMA } },
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: deckPrompt({ notes, level: input.level, slides: input.slides }) }],
-    },
-    { signal },
-  );
-  const message = await stream.finalMessage();
-  checkStop(message);
-  if (message.stop_reason === "max_tokens") throw new Error("La presentazione è venuta troppo lunga. Prova con meno slide.");
-  const json = message.content.filter((b) => b.type === "text").map((b) => b.text).join("");
-  const deck = JSON.parse(json);
-  deck.quiz = deck.quiz.filter((q) => q.opzioni.length >= 2 && q.corretta >= 0 && q.corretta < q.opzioni.length);
-  setStep("slides", "done");
-  return deck;
-}
-
-function friendlyError(err) {
-  if (err instanceof Anthropic.AuthenticationError) return "La chiave API non è valida. Controllala nelle impostazioni (⚙︎).";
-  if (err instanceof Anthropic.PermissionDeniedError) return "La chiave API non ha i permessi necessari.";
-  if (err instanceof Anthropic.RateLimitError) return "Troppe richieste in poco tempo. Aspetta un minuto e riprova.";
-  if (err instanceof Anthropic.BadRequestError) {
-    if (/credit balance/i.test(err.message)) return "Il credito dell'account Anthropic è esaurito. Ricaricalo su console.anthropic.com.";
-    return `Richiesta non valida: ${err.message}`;
-  }
-  if (err instanceof Anthropic.APIConnectionError) return "Problema di connessione. Controlla Internet e riprova.";
-  if (err instanceof Anthropic.APIError) return `Errore del servizio (${err.status}). Riprova tra poco.`;
-  if (err instanceof SyntaxError) return "La presentazione non è stata generata correttamente. Riprova.";
-  return err.message || String(err);
+function setAI(text) {
+  $("aiStatus").textContent = text;
 }
 
 async function start() {
@@ -370,7 +300,7 @@ async function start() {
     notes: $("notesInput").value.trim(),
   };
 
-  if (!load(KEY_STORAGE, "")) {
+  if (!hasKey()) {
     openSettings();
     return;
   }
@@ -378,24 +308,85 @@ async function start() {
     showError($("inputError"), "Aggiungi almeno una foto, un PDF o qualche appunto.");
     return;
   }
-  const total = state.files.reduce((n, f) => n + f.bytes, 0);
-  if (total > MAX_TOTAL_BYTES) {
-    showError($("inputError"), "Il materiale è troppo pesante (massimo circa 28 MB). Dividilo in due studi.");
+  const images = state.files.flatMap((f) => f.images);
+  if (images.length > MAX_IMAGES) {
+    showError($("inputError"), `Troppe pagine in foto (${images.length}): le AI gratuite ne leggono al massimo ${MAX_IMAGES} alla volta. Dividile in più studi.`);
     return;
   }
+  const pdfText = state.files.map((f) => f.text).filter(Boolean).join("\n\n");
 
   document.querySelectorAll("#steps li").forEach((li) => delete li.dataset.status);
-  $("liveText").textContent = "";
+  setAI("");
+  $("failLog").replaceChildren();
+  $("failBox").hidden = true;
   showError($("workingError"), "");
   $("cancelBtn").textContent = "Annulla";
   show("viewWorking");
 
-  const anthropic = client();
   const controller = new AbortController();
   state.abort = controller;
+  const signal = controller.signal;
+  const used = new Set();
+  const common = { keys: keys(), system: SYSTEM_PROMPT, onStatus: setAI, signal };
+  const logFailures = (failures) => {
+    for (const f of failures) {
+      const li = document.createElement("li");
+      li.textContent = f;
+      $("failLog").append(li);
+    }
+    $("failBox").hidden = !$("failLog").children.length;
+  };
+
   try {
-    const { notes, sources } = await buildNotes(anthropic, input, controller.signal);
-    const deck = await buildDeck(anthropic, notes, input, controller.signal);
+    // 1. read the material and write the study sheet
+    setStep("read", "active");
+    const first = await ask({ ...common, text: notesPrompt(input, pdfText), images });
+    logFailures(first.failures);
+    used.add(first.provider);
+    let notes = first.output;
+    let queries = [];
+    const m = notes.match(/\n?\s*\**RICERCHE:?\**:?\s*(.+)\s*$/i);
+    if (m) {
+      queries = m[1].split("|").map((q) => q.replace(/[*_`"]/g, "").trim()).filter(Boolean).slice(0, 4);
+      notes = notes.slice(0, m.index).trim();
+    }
+    setStep("read", "done");
+
+    // 2. web research on Wikipedia (free, no key)
+    let sources = [];
+    if (input.web) {
+      setStep("web", "active");
+      setAI("Wikipedia");
+      if (!queries.length) queries = [input.topic || notes.match(/^#+\s*(.+)$/m)?.[1] || ""].filter(Boolean);
+      let articles = [];
+      try {
+        articles = await wikipedia(queries, signal);
+      } catch (err) {
+        if (signal.aborted) throw err;
+        console.warn("Wikipedia", err);
+      }
+      if (articles.length) {
+        const extra = await ask({ ...common, text: webPrompt(notes, articles) });
+        logFailures(extra.failures);
+        used.add(extra.provider);
+        const section = extra.output.replace(/^(?!\s*##)/, "## Approfondimenti dal web\n\n");
+        const at = notes.search(/^##\s*Parole chiave/im);
+        notes = at === -1 ? `${notes}\n\n${section}` : `${notes.slice(0, at)}${section}\n\n${notes.slice(at)}`;
+        sources = articles.map((a) => ({ url: a.url, title: `Wikipedia – ${a.title}` }));
+      }
+      setStep("web", "done");
+    } else {
+      setStep("web", "skipped");
+    }
+
+    // 3. slides and quiz
+    setStep("slides", "active");
+    const third = await ask({ ...common, text: deckPrompt({ notes, level: input.level, slides: input.slides }), json: true, validate: validateDeck });
+    logFailures(third.failures);
+    used.add(third.provider);
+    setStep("slides", "done");
+
+    const deck = third.output;
     const result = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
@@ -404,16 +395,18 @@ async function start() {
       notes,
       sources,
       deck,
+      ai: [...used].join(", "),
     };
     saveToHistory(result);
     openResult(result);
   } catch (err) {
-    if (controller.signal.aborted) {
+    if (signal.aborted) {
       show("viewInput");
       return;
     }
     console.error(err);
-    showError($("workingError"), friendlyError(err));
+    logFailures(err.failures || []);
+    showError($("workingError"), err.message || String(err));
     $("cancelBtn").textContent = "← Torna indietro";
   } finally {
     state.abort = null;
@@ -432,6 +425,7 @@ function openResult(result) {
   state.slideIndex = 0;
   $("resultTitle").textContent = result.title;
   $("resultTopic").textContent = result.deck.sottotitolo || result.topic || "";
+  $("resultAI").textContent = result.ai ? `Preparato con: ${result.ai}` : "";
   $("notesOut").innerHTML = renderMarkdown(result.notes);
   $("notesOut").querySelectorAll("a").forEach((a) => {
     a.target = "_blank";
@@ -691,20 +685,52 @@ function renderHistory() {
 
 /* ---------- settings ---------- */
 
+function renderKeyFields() {
+  const saved = keys();
+  const box = $("keyFields");
+  box.replaceChildren();
+  PROVIDERS.forEach((p, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "key-field";
+    const label = document.createElement("label");
+    label.className = "field-label";
+    label.htmlFor = `key-${p.id}`;
+    label.textContent = `${i + 1}. ${p.name}`;
+    const hint = document.createElement("p");
+    hint.className = "muted small";
+    hint.textContent = `${p.hint} `;
+    const link = document.createElement("a");
+    link.href = p.keyUrl;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "Crea la chiave";
+    hint.append(link);
+    const input = document.createElement("input");
+    input.type = "password";
+    input.id = `key-${p.id}`;
+    input.autocomplete = "off";
+    input.placeholder = "Incolla qui la chiave";
+    input.value = saved[p.id] || "";
+    wrap.append(label, hint, input);
+    box.append(wrap);
+  });
+}
+
 function openSettings() {
-  $("apiKeyInput").value = load(KEY_STORAGE, "");
+  renderKeyFields();
   $("settingsDialog").showModal();
 }
 
 /* ---------- wiring ---------- */
 
-$("fileInput").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
-$("cameraInput").addEventListener("change", (e) => { addFiles(e.target.files); e.target.value = ""; });
+// Copy the FileList: clearing the input right after empties it.
+$("fileInput").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
+$("cameraInput").addEventListener("change", (e) => { addFiles([...e.target.files]); e.target.value = ""; });
 
 const dz = $("dropzone");
 dz.addEventListener("dragover", (e) => { e.preventDefault(); dz.classList.add("over"); });
 dz.addEventListener("dragleave", () => dz.classList.remove("over"));
-dz.addEventListener("drop", (e) => { e.preventDefault(); dz.classList.remove("over"); addFiles(e.dataTransfer.files); });
+dz.addEventListener("drop", (e) => { e.preventDefault(); dz.classList.remove("over"); addFiles([...e.dataTransfer.files]); });
 
 $("startBtn").addEventListener("click", start);
 $("cancelBtn").addEventListener("click", () => {
@@ -750,8 +776,12 @@ $("historyBack").addEventListener("click", () => show(state.result ? "viewResult
 $("settingsBtn").addEventListener("click", openSettings);
 $("settingsForm").addEventListener("submit", (e) => {
   if (e.submitter?.value !== "save") return;
-  const key = $("apiKeyInput").value.trim();
-  if (!save(KEY_STORAGE, key)) alert("Non riesco a salvare la chiave in questo browser (navigazione privata?).");
+  const next = {};
+  for (const p of PROVIDERS) {
+    const v = $(`key-${p.id}`).value.trim();
+    if (v) next[p.id] = v;
+  }
+  if (!save(KEYS_STORAGE, next)) alert("Non riesco a salvare le chiavi in questo browser (navigazione privata?).");
 });
 
-if (!load(KEY_STORAGE, "")) openSettings();
+if (!hasKey()) openSettings();

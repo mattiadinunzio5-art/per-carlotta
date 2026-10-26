@@ -8,6 +8,7 @@ Copiate qui perché l'app funzioni senza dipendere da CDN esterne.
 | `marked.min.js` | `marked` | 12.0.2 |
 | `purify.min.js` | `dompurify` | 3.1.6 |
 | `pptxgen.bundle.js` | `pptxgenjs` | 3.12.0 |
+| `pdf.min.mjs`, `pdf.worker.min.mjs` | `pdfjs-dist` (build `legacy`, per iPhone meno recenti) | 5.7.284 |
 
 Per rigenerare il bundle dell'SDK:
 
