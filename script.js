@@ -135,8 +135,9 @@ function openIntro() {
     $("secretInput").focus();
     return;
   }
+  if (introEnvelope.classList.contains("open")) return;
   introEnvelope.classList.add("open");
-  setTimeout(() => showScreen("menu"), 1050);
+  setTimeout(() => showScreen("menu"), reduceMotion ? 600 : 2600);
 }
 $("openIntro").addEventListener("click", openIntro);
 introEnvelope.addEventListener("click", openIntro);
