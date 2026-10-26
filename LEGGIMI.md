@@ -5,11 +5,23 @@ Un piccolo sito statico romantico, rosso e vintage. Funziona senza backend.
 ## Prova in locale
 Apri `index.html` nel browser. Per una prova più affidabile, usa un server locale oppure pubblicalo seguendo le istruzioni qui sotto.
 
+## Cosa c'è dentro
+- **Busta iniziale**, con una parola segreta facoltativa per aprirla.
+- **Sei sorprese**, ognuna con un cuore da raccogliere: ricordi (foto), il nostro tempo (contatore dal vivo e conto alla rovescia all'anniversario), la nostra canzone, una lettera che si scrive da sola, il barattolo dei perché, buoni d'amore da riscattare.
+- **L'ultima sorpresa** si sblocca solo dopo aver raccolto tutti i cuori e si apre con un'esplosione di cuori.
+- Cuori raccolti, bigliettini letti e buoni usati restano salvati sul telefono di Carlotta.
+
 ## Personalizzazione
-- **Messaggio finale e data iniziale:** modifica `CONFIG` in `script.js`. La data va scritta come `AAAA-MM-GG`.
-- **Lettera:** modifica i paragrafi dentro `letterBody` in `index.html`.
-- **Foto:** nella versione iniziale sono segnaposto grafici. Per aggiungere immagini, metti i file in `public/images/` e modifica il contenuto dei riquadri in `index.html` usando, ad esempio, `<img src="public/images/foto1.jpg" alt="Un nostro ricordo">`.
-- **Musica:** metti un file audio che puoi usare legalmente in `public/audio/nostra-canzone.mp3`. Il pulsante lo riprodurrà dopo il tocco dell'utente.
+Tutto si cambia dall'oggetto `CONFIG` all'inizio di `script.js`, senza toccare `index.html`:
+- `password`: la parola segreta per aprire la busta (vuota = nessuna richiesta). Non distingue maiuscole e minuscole.
+- `startDate`: il giorno in cui è cominciato tutto, nel formato `AAAA-MM-GG`.
+- `photos`: metti le immagini in `public/images/` e scrivi il percorso in `src` (es. `public/images/foto1.jpg`), con didascalia e un pensiero (`note`) che compare quando la foto si apre.
+- `timeline`: le tappe della vostra storia, con data, titolo e testo.
+- `song`: un file audio che puoi usare legalmente in `public/audio/`, oppure il link "embed" di Spotify, con titolo e artista.
+- `letter`: i paragrafi della lettera.
+- `reasons`: i bigliettini del barattolo. Più sono personali, meglio è.
+- `coupons`: i buoni d'amore.
+- `finalMessage`: il messaggio dell'ultima busta.
 
 ## Pubblicazione gratuita su GitHub Pages
 1. Crea un account GitHub, se non ne hai già uno.
