@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1f3a5f">
+  <meta name="description" content="Manda le pagine del libro e i tuoi appunti: ricevi riassunto, spiegazione semplice, approfondimenti dal web e una presentazione per studiare.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Studio Facile">
+  <title>Studio Facile</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="vendor/marked.min.js" defer></script>
+  <script src="vendor/purify.min.js" defer></script>
+  <script src="vendor/pptxgen.bundle.js" defer></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">S</span> Studio Facile</a>
+    <nav class="topnav">
+      <button class="ghost" id="historyBtn" type="button">I miei studi</button>
+      <button class="ghost" id="settingsBtn" type="button" aria-label="Impostazioni">⚙︎</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 1. Caricamento -->
+    <section class="view active" id="viewInput">
+      <h1>Cosa studiamo oggi?</h1>
+      <p class="lead">Fotografa le pagine del libro, aggiungi PDF o appunti. Ti preparo riassunto, spiegazione semplice, approfondimenti dal web e una presentazione per ripassare.</p>
+
+      <div class="card">
+        <div class="dropzone" id="dropzone">
+          <p><strong>Pagine e documenti</strong></p>
+          <p class="muted">Foto (JPG, PNG, HEIC convertite in automatico) o PDF</p>
+          <div class="drop-actions">
+            <label class="btn secondary">📷 Scatta foto
+              <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple hidden>
+            </label>
+            <label class="btn secondary">📎 Scegli file
+              <input type="file" id="fileInput" accept="image/*,application/pdf" multiple hidden>
+            </label>
+          </div>
+        </div>
+        <ul class="file-list" id="fileList"></ul>
+      </div>
+
+      <div class="card">
+        <label class="field-label" for="notesInput">I tuoi appunti <span class="muted">(facoltativo)</span></label>
+        <textarea id="notesInput" rows="6" placeholder="Incolla o scrivi qui i tuoi appunti…"></textarea>
+      </div>
+
+      <div class="card grid-2">
+        <div>
+          <label class="field-label" for="topicInput">Argomento / materia <span class="muted">(facoltativo)</span></label>
+          <input id="topicInput" type="text" placeholder="es. Storia – La Rivoluzione francese">
+        </div>
+        <div>
+          <label class="field-label" for="levelInput">Livello</label>
+          <select id="levelInput">
+            <option value="scuola media">Scuola media</option>
+            <option value="scuola superiore" selected>Scuola superiore</option>
+            <option value="università">Università</option>
+            <option value="adulto curioso, senza basi specifiche">Per curiosità</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="slidesInput">Numero di slide</label>
+          <select id="slidesInput">
+            <option value="6">Poche (circa 6)</option>
+            <option value="10" selected>Normali (circa 10)</option>
+            <option value="15">Tante (circa 15)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="webInput">Ricerca sul web</label>
+          <select id="webInput">
+            <option value="on" selected>Sì, integra con dati dal web</option>
+            <option value="off">No, usa solo il mio materiale</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="error" id="inputError" hidden></p>
+      <button class="btn primary big" id="startBtn" type="button">Prepara il mio studio ✨</button>
+    </section>
+
+    <!-- 2. Elaborazione -->
+    <section class="view" id="viewWorking">
+      <h1>Ci sto lavorando…</h1>
+      <ol class="steps" id="steps">
+        <li data-step="read">Leggo le pagine e gli appunti</li>
+        <li data-step="web">Cerco approfondimenti sul web</li>
+        <li data-step="notes">Scrivo riassunto e spiegazione semplice</li>
+        <li data-step="slides">Preparo la presentazione e il quiz</li>
+      </ol>
+      <div class="live card" id="liveBox"><div class="live-text" id="liveText"></div></div>
+      <p class="muted small" id="workingNote">Di solito ci vogliono 1–3 minuti. Non chiudere la pagina.</p>
+      <p class="error" id="workingError" hidden></p>
+      <button class="btn secondary" id="cancelBtn" type="button">Annulla</button>
+    </section>
+
+    <!-- 3. Risultato -->
+    <section class="view" id="viewResult">
+      <div class="result-head">
+        <div>
+          <p class="eyebrow" id="resultTopic"></p>
+          <h1 id="resultTitle">Il tuo studio</h1>
+        </div>
+        <button class="btn secondary" id="newBtn" type="button">+ Nuovo studio</button>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button role="tab" class="tab active" data-tab="tabNotes" aria-selected="true">📖 Scheda</button>
+        <button role="tab" class="tab" data-tab="tabSlides" aria-selected="false">🖥️ Slide</button>
+        <button role="tab" class="tab" data-tab="tabQuiz" aria-selected="false">✅ Quiz</button>
+      </div>
+
+      <div class="tab-panel active" id="tabNotes">
+        <article class="card prose" id="notesOut"></article>
+        <div class="card" id="sourcesBox" hidden>
+          <h3>Fonti consultate sul web</h3>
+          <ol class="sources" id="sourcesList"></ol>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabSlides">
+        <div class="deck" id="deck">
+          <div class="slide-stage" id="slideStage"></div>
+          <div class="deck-controls">
+            <button class="btn secondary" id="prevSlide" type="button" aria-label="Slide precedente">←</button>
+            <span id="slideCounter">1 / 1</span>
+            <button class="btn secondary" id="nextSlide" type="button" aria-label="Slide successiva">→</button>
+            <button class="btn secondary" id="fullscreenBtn" type="button" aria-label="Schermo intero">⛶</button>
+          </div>
+          <details class="speaker" id="speakerBox">
+            <summary>Spiegazione di questa slide</summary>
+            <p id="speakerNotes"></p>
+          </details>
+        </div>
+        <div class="export-row">
+          <button class="btn primary" id="pptxBtn" type="button">Scarica PowerPoint</button>
+          <button class="btn secondary" id="pdfBtn" type="button">Stampa / salva PDF</button>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tabQuiz">
+        <div id="quizOut"></div>
+        <p class="quiz-score" id="quizScore"></p>
+      </div>
+    </section>
+
+    <!-- Storico -->
+    <section class="view" id="viewHistory">
+      <h1>I miei studi</h1>
+      <p class="lead">Gli studi preparati restano salvati su questo dispositivo.</p>
+      <ul class="history" id="historyList"></ul>
+      <button class="btn secondary" id="historyBack" type="button">← Indietro</button>
+    </section>
+  </main>
+
+  <!-- Stampa: tutte le slide una per pagina -->
+  <div id="printDeck" aria-hidden="true"></div>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" id="settingsForm">
+      <h2>Impostazioni</h2>
+      <p class="muted small">L'app usa Claude di Anthropic. Serve una chiave API personale: creala su <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. La chiave resta salvata solo in questo browser e viene inviata solo ad Anthropic.</p>
+      <label class="field-label" for="apiKeyInput">Chiave API Anthropic</label>
+      <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-ant-…">
+      <div class="dialog-actions">
+        <button class="btn ghost" value="cancel" type="submit">Chiudi</button>
+        <button class="btn primary" id="saveKeyBtn" value="save" type="submit">Salva</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>

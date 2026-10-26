@@ -1,0 +1,14 @@
+{
+  "name": "Studio Facile",
+  "short_name": "Studio",
+  "description": "Riassunti, spiegazioni semplici, approfondimenti dal web e presentazioni dalle pagine del libro e dai tuoi appunti.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ef",
+  "theme_color": "#1f3a5f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
