@@ -30,81 +30,104 @@
       </div>
       <h1>Per te, <em>Carlotta.</em></h1>
       <p class="intro-copy">Ho preparato qualcosa che parla un po' di noi.<br>Apri quando sei pronta.</p>
+      <form class="secret-form" id="secretForm" hidden>
+        <label for="secretInput" id="secretLabel">Prima, la parola segreta</label>
+        <div class="secret-row"><input id="secretInput" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="submit" aria-label="Conferma">♥</button></div>
+        <small id="secretHint"></small>
+      </form>
       <button class="primary-btn" id="openIntro">Apri la sorpresa <span>♥</span></button>
       <p class="tiny-note">fatto con amore, solo per te</p>
     </section>
 
     <section class="screen menu-screen" id="menu">
       <p class="eyebrow">UN PICCOLO MONDO TUTTO NOSTRO</p>
-      <h2>Choose the <em>Surprise</em></h2>
-      <p class="section-lead">Scegli da dove cominciare, amore.</p>
+      <h2>Scegli la <em>sorpresa</em></h2>
+      <p class="section-lead">Ogni sorpresa nasconde un cuore. Raccoglili tutti, amore:<br>alla fine ti aspetta qualcosa.</p>
+      <div class="heart-progress" id="heartProgress" aria-live="polite"></div>
       <div class="surprise-grid">
-        <button class="surprise-card" data-go="memories"><span class="illustration camera">▣</span><strong>Our Memories</strong><small>piccoli pezzi di noi</small></button>
-        <button class="surprise-card" data-go="time"><span class="illustration clock">♡</span><strong>Our Time</strong><small>la nostra storia</small></button>
-        <button class="surprise-card" data-go="song"><span class="illustration vinyl">♫</span><strong>Our Song</strong><small>una canzone, mille ricordi</small></button>
-        <button class="surprise-card" data-go="letter"><span class="illustration letter-icon">✉</span><strong>A Special Letter</strong><small>qualcosa che voglio dirti</small></button>
+        <button class="surprise-card" data-go="memories"><span class="illustration">▣</span><strong>I nostri ricordi</strong><small>piccoli pezzi di noi</small></button>
+        <button class="surprise-card" data-go="time"><span class="illustration">♡</span><strong>Il nostro tempo</strong><small>la nostra storia</small></button>
+        <button class="surprise-card" data-go="song"><span class="illustration">♫</span><strong>La nostra canzone</strong><small>una canzone, mille ricordi</small></button>
+        <button class="surprise-card" data-go="letter"><span class="illustration">✉</span><strong>Una lettera</strong><small>qualcosa che voglio dirti</small></button>
+        <button class="surprise-card" data-go="reasons"><span class="illustration">❦</span><strong>Il barattolo dei perché</strong><small>tutti i motivi per cui ti amo</small></button>
+        <button class="surprise-card" data-go="coupons"><span class="illustration">✂</span><strong>Buoni d'amore</strong><small>da usare quando vuoi</small></button>
       </div>
-      <button class="text-btn" data-go="final">C'è anche un'ultima sorpresa →</button>
+      <button class="text-btn final-link" id="finalLink">🔒 L'ultima sorpresa</button>
+      <p class="hint" id="finalLock" aria-live="polite"></p>
     </section>
 
     <section class="screen content-screen" id="memories">
       <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
-      <p class="eyebrow">I NOSTRI MOMENTI</p><h2>Our <em>Memories</em></h2>
-      <p class="section-lead">Le foto più belle sono quelle che diventano ricordi.</p>
-      <div class="photo-grid" id="photoGrid">
-        <button class="polaroid tilt-left" data-photo="1"><div class="photo-placeholder"><span>✿</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Un ricordo da custodire</span></button>
-        <button class="polaroid tilt-right" data-photo="2"><div class="photo-placeholder blush"><span>♥</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Quel momento speciale</span></button>
-        <button class="polaroid tilt-left" data-photo="3"><div class="photo-placeholder pale"><span>☼</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Una giornata insieme</span></button>
-        <button class="polaroid tilt-right" data-photo="4"><div class="photo-placeholder dark"><span>♡</span><small>INSERISCI UNA FOTO</small></div><span class="photo-caption">Il mio posto preferito</span></button>
-      </div>
-      <p class="hint">Puoi sostituire i riquadri con le vostre foto: trovi le istruzioni nel file LEGGIMI.</p>
+      <p class="eyebrow">I NOSTRI MOMENTI</p><h2>I nostri <em>ricordi</em></h2>
+      <p class="section-lead">Le foto più belle sono quelle che diventano ricordi.<br>Toccane una.</p>
+      <div class="photo-grid" id="photoGrid"></div>
     </section>
 
     <section class="screen content-screen" id="time">
       <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
-      <p class="eyebrow">DA QUANDO È COMINCIATO TUTTO</p><h2>Our <em>Time</em></h2>
+      <p class="eyebrow">DA QUANDO È COMINCIATO TUTTO</p><h2>Il nostro <em>tempo</em></h2>
       <p class="section-lead">Ogni storia è fatta di momenti che diventano importanti.</p>
       <div class="time-card">
         <div class="time-heart">♥</div>
         <p class="small-caps">IL NOSTRO TEMPO INSIEME</p>
-        <div class="counter" id="counter"><span>—</span><small>imposta la data nel file script.js</small></div>
+        <div class="counter" id="counter"><span>—</span><small>presto qui ci sarà la nostra data</small></div>
+        <div class="clock-row" id="clockRow" hidden>
+          <div><b id="cDays">0</b><small>giorni</small></div>
+          <div><b id="cHours">00</b><small>ore</small></div>
+          <div><b id="cMinutes">00</b><small>minuti</small></div>
+          <div><b id="cSeconds">00</b><small>secondi</small></div>
+        </div>
+        <p class="anniversary" id="anniversary"></p>
         <p class="time-message">E il bello è che ci sono ancora tanti ricordi da creare.</p>
       </div>
-      <div class="timeline">
-        <div class="timeline-item"><span class="timeline-dot">♥</span><div><strong>Il primo capitolo</strong><p>Il giorno in cui le nostre strade si sono incrociate.</p></div></div>
-        <div class="timeline-item"><span class="timeline-dot">✦</span><div><strong>Un momento speciale</strong><p>Un ricordo che porterò sempre con me.</p></div></div>
-        <div class="timeline-item"><span class="timeline-dot">∞</span><div><strong>Tutto quello che verrà</strong><p>La parte più bella della storia deve ancora essere scritta.</p></div></div>
-      </div>
-      <p class="hint">Le date e i testi sono personalizzabili in <code>script.js</code>.</p>
+      <div class="timeline" id="timeline"></div>
     </section>
 
     <section class="screen content-screen song-screen" id="song">
       <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
-      <p class="eyebrow">LA COLONNA SONORA DI NOI</p><h2>Our <em>Song</em></h2>
+      <p class="eyebrow">LA COLONNA SONORA DI NOI</p><h2>La nostra <em>canzone</em></h2>
       <p class="section-lead">Ci sono canzoni che fanno tornare in mente una persona.</p>
       <div class="record-player">
         <div class="vinyl" id="vinyl"><div class="record-label">C<br><span>♥</span></div></div>
-        <div class="tonearm"></div>
+        <div class="tonearm" id="tonearm"></div>
       </div>
-      <audio id="songAudio" preload="none" src="public/audio/nostra-canzone.mp3"></audio>
+      <p class="song-title" id="songTitle"></p>
+      <audio id="songAudio" preload="none"></audio>
       <button class="primary-btn" id="playSong">▶ Ascolta la nostra canzone</button>
-      <p class="hint" id="audioHint">Aggiungi il tuo brano in public/audio/nostra-canzone.mp3</p>
+      <div class="song-embed" id="songEmbed" hidden></div>
+      <p class="hint" id="audioHint"></p>
     </section>
 
     <section class="screen content-screen letter-screen" id="letter">
       <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
-      <p class="eyebrow">QUALCOSA CHE VOGLIO DIRTI</p><h2>A Special <em>Letter</em></h2>
-      <div class="letter-paper">
+      <p class="eyebrow">QUALCOSA CHE VOGLIO DIRTI</p><h2>Una <em>lettera</em></h2>
+      <div class="letter-paper" id="letterPaper">
         <div class="letter-decoration">♥</div>
         <p class="letter-dear">Carlotta,</p>
-        <div class="letter-body" id="letterBody">
-          <p>non sempre è facile trovare le parole giuste per dire a qualcuno quanto sia speciale.</p>
-          <p>Per questo ho voluto creare qualcosa che fosse solo tuo: un piccolo posto dove raccogliere ricordi, musica e parole che contano.</p>
-          <p>Grazie per essere una parte così bella della mia vita. Spero che, ogni volta che tornerai qui, ti ricordi quanto sei importante per me.</p>
-          <p class="letter-sign">Con tutto il mio cuore, <span>♥</span></p>
-        </div>
+        <div class="letter-body" id="letterBody"></div>
+        <p class="letter-sign" id="letterSign">Con tutto il mio cuore, <span>♥</span></p>
         <div class="wax-seal">C ♥</div>
       </div>
+      <p class="hint" id="letterHint">tocca la lettera per leggerla tutta subito</p>
+    </section>
+
+    <section class="screen content-screen" id="reasons">
+      <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
+      <p class="eyebrow">TUTTI I MOTIVI</p><h2>Il barattolo dei <em>perché</em></h2>
+      <p class="section-lead">Dentro ci sono tanti bigliettini.<br>Ognuno è un motivo per cui ti amo. Pescane uno.</p>
+      <button class="jar" id="jar" aria-label="Pesca un biglietto dal barattolo">
+        <span class="jar-lid"></span>
+        <span class="jar-body"><span class="jar-notes" id="jarNotes" aria-hidden="true"></span><span class="jar-label">perché<br>ti amo</span></span>
+      </button>
+      <div class="reason-note" id="reasonNote" aria-live="polite"><p>Tocca il barattolo ♥</p></div>
+      <p class="hint" id="reasonCount"></p>
+    </section>
+
+    <section class="screen content-screen" id="coupons">
+      <button class="back-btn" data-go="menu">← Torna alle sorprese</button>
+      <p class="eyebrow">VALIDI PER SEMPRE</p><h2>Buoni <em>d'amore</em></h2>
+      <p class="section-lead">Ritagliati per te, senza scadenza.<br>Toccane uno quando vuoi usarlo: io mantengo la promessa.</p>
+      <div class="coupon-list" id="couponList"></div>
     </section>
 
     <section class="screen final-screen" id="final">
@@ -113,14 +136,16 @@
         <div class="final-paper">Sei una parte bellissima della mia storia.<br><span>♥</span></div>
         <div class="final-env"><div class="final-flap"></div><div class="final-seal">♥</div></div>
       </div>
-      <h2>One Last <em>Surprise</em></h2>
-      <p class="final-message" id="finalMessage">Carlotta, se potessi scegliere ancora, sceglierei di regalarti questo sorriso un'altra volta.</p>
+      <h2>L'ultima <em>sorpresa</em></h2>
+      <p class="final-hint" id="finalHint">tocca la busta</p>
+      <p class="final-message" id="finalMessage"></p>
       <button class="primary-btn" data-go="intro">Ricomincia da capo ↻</button>
       <p class="tiny-note">questa piccola sorpresa è tutta tua ♥</p>
     </section>
   </main>
 
-  <div class="photo-modal" id="photoModal" aria-hidden="true"><button id="closeModal" aria-label="Chiudi">×</button><div class="modal-content"><span>♥</span><p>Qui puoi aggiungere una vostra foto speciale.</p><small>Sostituisci il segnaposto seguendo LEGGIMI.</small></div></div>
+  <div class="photo-modal" id="photoModal" aria-hidden="true"><button id="closeModal" aria-label="Chiudi">×</button><div class="modal-content" id="modalContent"></div></div>
+  <div class="burst" id="burst" aria-hidden="true"></div>
   <footer>realizzato con amore <span>♥</span></footer>
   <script src="script.js"></script>
 </body>
