@@ -28,9 +28,16 @@ const CONFIG = {
     { icon: "∞", date: "13–16 novembre 2026 · a Marsiglia", title: "Tutto quello che verrà", text: "La parte più bella della storia deve ancora essere scritta." },
   ],
 
-  // La canzone: o un file in public/audio/, oppure il link "embed" di Spotify
-  // (es. "https://open.spotify.com/embed/track/ID"). Se metti spotify, il file viene ignorato.
-  song: { file: "public/audio/nostra-canzone.mp3", title: "", artist: "", spotify: "" },
+  // La canzone: un link di YouTube (youtube), oppure il link "embed" di Spotify
+  // (es. "https://open.spotify.com/embed/track/ID"), oppure un file in public/audio/.
+  // Se c'è un link, il file viene ignorato.
+  song: {
+    file: "public/audio/nostra-canzone.mp3",
+    title: "Stand by Me",
+    artist: "Ben E. King",
+    spotify: "",
+    youtube: "https://youtube.com/watch?v=S_mZV1gWXWQ",
+  },
 
   // La lettera: ogni riga è un paragrafo.
   letter: [
@@ -245,10 +252,14 @@ const playButton = $("playSong");
 const audioHint = $("audioHint");
 const song = CONFIG.song;
 if (song.title) $("songTitle").innerHTML = `<b>${escapeHtml(song.title)}</b>${song.artist ? ` · ${escapeHtml(song.artist)}` : ""}`;
-if (song.spotify) {
+// accetta i link youtube.com/watch?v=ID, youtu.be/ID e youtube.com/shorts/ID
+const youtubeId = (song.youtube || "").match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/)?.[1];
+if (youtubeId || song.spotify) {
   playButton.hidden = true;
   $("songEmbed").hidden = false;
-  $("songEmbed").innerHTML = `<iframe src="${escapeHtml(song.spotify)}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="La nostra canzone"></iframe>`;
+  $("songEmbed").innerHTML = youtubeId
+    ? `<iframe class="youtube" src="https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&playsinline=1" width="100%" frameborder="0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" title="La nostra canzone"></iframe>`
+    : `<iframe src="${escapeHtml(song.spotify)}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="La nostra canzone"></iframe>`;
   vinyl.classList.add("spinning", "slow");
   $("tonearm").classList.add("on");
 } else {
@@ -278,7 +289,7 @@ audio.addEventListener("ended", () => {
   setPlaying(false);
   playButton.textContent = "▶ Ascolta di nuovo";
 });
-audio.addEventListener("error", () => { if (!song.spotify) audioHint.textContent = "La canzone arriverà presto… ♥"; });
+audio.addEventListener("error", () => { if (!song.spotify && !youtubeId) audioHint.textContent = "La canzone arriverà presto… ♥"; });
 
 // --- La lettera, scritta lettera per lettera ---
 $("letterSign").firstChild.textContent = CONFIG.letterSign + " ";
