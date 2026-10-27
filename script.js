@@ -15,10 +15,10 @@ const CONFIG = {
   // Quando la foto viene aperta compaiono luogo (place) e data (date), e sotto il pensiero (note).
   // Si possono lasciare vuoti. Puoi aggiungere quante foto vuoi.
   photos: [
-    { src: "public/images/foto1.jpg", caption: "Un nostro ricordo da custodire", place: "", date: "", note: "Il nostro primo viaggio assieme, in cui abbiamo imparato a conoscerci." },
-    { src: "public/images/foto2.jpg", caption: "Quel momento speciale", place: "Milano", date: "", note: "Su quella fantastica terrazza da cui vedevamo tutta Milano." },
-    { src: "public/images/foto3.jpg", caption: "Una giornata assieme", place: "Roma", date: "", note: "Il viaggio pianificato in una splendida città con l'amore della mia vita." },
-    { src: "public/images/foto4.jpg", caption: "Il mio posto preferito", place: "", date: "", note: "In realtà il mio posto preferito è quando sono a cena con te." },
+    { src: "public/images/foto1.jpg", caption: "Un nostro ricordo da custodire", place: "Como", date: "30 maggio 2026", note: "Il nostro primo viaggio assieme, in cui abbiamo imparato a conoscerci." },
+    { src: "public/images/foto2.jpg", caption: "Quel momento speciale", place: "Milano", date: "16 luglio 2026", note: "Su quella fantastica terrazza da cui vedevamo tutta Milano." },
+    { src: "public/images/foto3.jpg", caption: "Una giornata assieme", place: "Roma", date: "8 settembre 2026", note: "Il viaggio pianificato in una splendida città con l'amore della mia vita." },
+    { src: "public/images/foto4.jpg", caption: "Il mio posto preferito", place: "Milano", date: "31 agosto 2026", note: "In realtà il mio posto preferito è quando sono a cena con te." },
   ],
 
   // Le tappe della vostra storia. date è libera (es. "15 giugno 2024"), puoi lasciarla vuota.
