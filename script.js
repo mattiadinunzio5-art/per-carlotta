@@ -12,12 +12,13 @@ const CONFIG = {
   startDate: "2026-05-30",
 
   // Foto: metti i file in public/images/ e scrivi il percorso in src (es. "public/images/foto1.jpg").
-  // note è il pensiero che compare quando la foto viene aperta. Puoi aggiungere quante foto vuoi.
+  // Quando la foto viene aperta compaiono luogo (place) e data (date), e sotto il pensiero (note).
+  // Si possono lasciare vuoti. Puoi aggiungere quante foto vuoi.
   photos: [
-    { src: "public/images/foto1.jpg", caption: "Un nostro ricordo da custodire", note: "" },
-    { src: "public/images/foto2.jpg", caption: "Quel momento speciale", note: "" },
-    { src: "public/images/foto3.jpg", caption: "Una giornata assieme", note: "" },
-    { src: "public/images/foto4.jpg", caption: "Il mio posto preferito", note: "" },
+    { src: "public/images/foto1.jpg", caption: "Un nostro ricordo da custodire", place: "", date: "", note: "Il nostro primo viaggio assieme, in cui abbiamo imparato a conoscerci." },
+    { src: "public/images/foto2.jpg", caption: "Quel momento speciale", place: "Milano", date: "", note: "Su quella fantastica terrazza da cui vedevamo tutta Milano." },
+    { src: "public/images/foto3.jpg", caption: "Una giornata assieme", place: "Roma", date: "", note: "Il viaggio pianificato in una splendida città con l'amore della mia vita." },
+    { src: "public/images/foto4.jpg", caption: "Il mio posto preferito", place: "", date: "", note: "In realtà il mio posto preferito è quando sono a cena con te." },
   ],
 
   // Le tappe della vostra storia. date è libera (es. "15 giugno 2024"), puoi lasciarla vuota.
@@ -176,10 +177,14 @@ $("photoGrid").innerHTML = CONFIG.photos.map((photo, i) => `
   </button>`).join("");
 
 const modal = $("photoModal");
+function photoMeta(photo) {
+  const parts = [photo.place && `📍 ${photo.place}`, photo.date && `🗓️ ${photo.date}`].filter(Boolean);
+  return parts.length ? `<p class="modal-meta">${parts.map(escapeHtml).join(" · ")}</p>` : "";
+}
 document.querySelectorAll("[data-photo]").forEach(btn => btn.addEventListener("click", () => {
   const photo = CONFIG.photos[btn.dataset.photo];
   $("modalContent").innerHTML = photo.src
-    ? `<img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}"><p class="modal-caption">${escapeHtml(photo.caption)}</p>${photo.note ? `<p>${escapeHtml(photo.note)}</p>` : ""}`
+    ? `<img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}"><p class="modal-caption">${escapeHtml(photo.caption)}</p>${photoMeta(photo)}${photo.note ? `<p>${escapeHtml(photo.note)}</p>` : ""}`
     : `<span>♥</span><p class="modal-caption">${escapeHtml(photo.caption)}</p><p>${escapeHtml(photo.note || "Qui presto ci sarà una nostra foto speciale.")}</p>`;
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
