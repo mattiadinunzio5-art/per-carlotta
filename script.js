@@ -5,28 +5,39 @@ const CONFIG = {
   password: "",
   passwordHint: "suggerimento: qualcosa che sappiamo solo noi",
 
+  // Il bigliettino che esce dalla busta iniziale quando si apre.
+  introLetter: { title: "Per Carlotta,", text: "sei l'inaspettato che aspettavo di più." },
+
   // Il giorno in cui è cominciato tutto. Formato: "2024-06-15". Lascia "" finché non vuoi mostrare il contatore.
-  startDate: "",
+  startDate: "2026-05-30",
 
   // Foto: metti i file in public/images/ e scrivi il percorso in src (es. "public/images/foto1.jpg").
-  // note è il pensiero che compare quando la foto viene aperta. Puoi aggiungere quante foto vuoi.
+  // Quando la foto viene aperta compaiono luogo (place) e data (date), e sotto il pensiero (note).
+  // Si possono lasciare vuoti. Puoi aggiungere quante foto vuoi.
   photos: [
-    { src: "", caption: "Un ricordo da custodire", note: "" },
-    { src: "", caption: "Quel momento speciale", note: "" },
-    { src: "", caption: "Una giornata insieme", note: "" },
-    { src: "", caption: "Il mio posto preferito", note: "" },
+    { src: "public/images/foto1.jpg", caption: "Un nostro ricordo da custodire", place: "Como", date: "30 maggio 2026", note: "Il nostro primo viaggio assieme, in cui abbiamo imparato a conoscerci." },
+    { src: "public/images/foto2.jpg", caption: "Quel momento speciale", place: "Milano", date: "16 luglio 2026", note: "Su quella fantastica terrazza da cui vedevamo tutta Milano." },
+    { src: "public/images/foto3.jpg", caption: "Una giornata assieme", place: "Roma", date: "8 settembre 2026", note: "Il viaggio pianificato in una splendida città con l'amore della mia vita." },
+    { src: "public/images/foto4.jpg", caption: "Il mio posto preferito", place: "Milano", date: "31 agosto 2026", note: "In realtà il mio posto preferito è quando sono a cena con te." },
   ],
 
   // Le tappe della vostra storia. date è libera (es. "15 giugno 2024"), puoi lasciarla vuota.
   timeline: [
-    { icon: "♥", date: "", title: "Il primo capitolo", text: "Il giorno in cui le nostre strade si sono incrociate." },
-    { icon: "✦", date: "", title: "Un momento speciale", text: "Un ricordo che porterò sempre con me." },
-    { icon: "∞", date: "", title: "Tutto quello che verrà", text: "La parte più bella della storia deve ancora essere scritta." },
+    { icon: "♥", date: "22 novembre 2025", title: "Il primo capitolo", text: "Il giorno in cui le nostre strade si sono incrociate." },
+    { icon: "✦", date: "8 settembre 2026 · a Roma", title: "Un momento speciale", text: "Un ricordo che porterò sempre con me." },
+    { icon: "∞", date: "13–16 novembre 2026 · a Marsiglia", title: "Tutto quello che verrà", text: "La parte più bella della storia deve ancora essere scritta." },
   ],
 
-  // La canzone: o un file in public/audio/, oppure il link "embed" di Spotify
-  // (es. "https://open.spotify.com/embed/track/ID"). Se metti spotify, il file viene ignorato.
-  song: { file: "public/audio/nostra-canzone.mp3", title: "", artist: "", spotify: "" },
+  // La canzone: un link di YouTube (youtube), oppure il link "embed" di Spotify
+  // (es. "https://open.spotify.com/embed/track/ID"), oppure un file in public/audio/.
+  // Se c'è un link, il file viene ignorato.
+  song: {
+    file: "public/audio/nostra-canzone.mp3",
+    title: "Stand by Me",
+    artist: "Ben E. King",
+    spotify: "",
+    youtube: "https://youtube.com/watch?v=S_mZV1gWXWQ",
+  },
 
   // La lettera: ogni riga è un paragrafo.
   letter: [
@@ -62,7 +73,10 @@ const CONFIG = {
     { icon: "🗺️", title: "Una gita a sorpresa", text: "Tu prepari lo zaino, io la destinazione." },
   ],
 
-  finalMessage: "Carlotta, se potessi scegliere ancora, sceglierei di regalarti questo sorriso un'altra volta.",
+  // L'ultima sorpresa: finalPaper è il foglietto che esce dalla busta, finalMessage compare sotto.
+  // In finalMessage "\n" va a capo.
+  finalPaper: "Sei l'amore più grande che potesse capitarmi.",
+  finalMessage: "Tanti auguri, piccola mia!\nPer sempre tuo,\nMattia ♥",
 };
 
 const SECTIONS = ["memories", "time", "song", "letter", "reasons", "coupons"];
@@ -125,6 +139,8 @@ $("finalLink").addEventListener("click", () => {
 
 // --- Busta iniziale e parola segreta ---
 const introEnvelope = $("introEnvelope");
+$("introLetterTitle").textContent = CONFIG.introLetter.title;
+$("introLetterText").textContent = CONFIG.introLetter.text;
 let unlockedIntro = !CONFIG.password;
 const normalize = text => text.trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -137,7 +153,8 @@ function openIntro() {
   }
   if (introEnvelope.classList.contains("open")) return;
   introEnvelope.classList.add("open");
-  setTimeout(() => showScreen("menu"), reduceMotion ? 600 : 2600);
+  // lascia il tempo di leggere il bigliettino prima di passare alle sorprese
+  setTimeout(() => showScreen("menu"), reduceMotion ? 2500 : 4500);
 }
 $("openIntro").addEventListener("click", openIntro);
 introEnvelope.addEventListener("click", openIntro);
@@ -170,10 +187,14 @@ $("photoGrid").innerHTML = CONFIG.photos.map((photo, i) => `
   </button>`).join("");
 
 const modal = $("photoModal");
+function photoMeta(photo) {
+  const parts = [photo.place && `📍 ${photo.place}`, photo.date && `🗓️ ${photo.date}`].filter(Boolean);
+  return parts.length ? `<p class="modal-meta">${parts.map(escapeHtml).join(" · ")}</p>` : "";
+}
 document.querySelectorAll("[data-photo]").forEach(btn => btn.addEventListener("click", () => {
   const photo = CONFIG.photos[btn.dataset.photo];
   $("modalContent").innerHTML = photo.src
-    ? `<img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}"><p class="modal-caption">${escapeHtml(photo.caption)}</p>${photo.note ? `<p>${escapeHtml(photo.note)}</p>` : ""}`
+    ? `<img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}"><p class="modal-caption">${escapeHtml(photo.caption)}</p>${photoMeta(photo)}${photo.note ? `<p>${escapeHtml(photo.note)}</p>` : ""}`
     : `<span>♥</span><p class="modal-caption">${escapeHtml(photo.caption)}</p><p>${escapeHtml(photo.note || "Qui presto ci sarà una nostra foto speciale.")}</p>`;
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
@@ -234,10 +255,14 @@ const playButton = $("playSong");
 const audioHint = $("audioHint");
 const song = CONFIG.song;
 if (song.title) $("songTitle").innerHTML = `<b>${escapeHtml(song.title)}</b>${song.artist ? ` · ${escapeHtml(song.artist)}` : ""}`;
-if (song.spotify) {
+// accetta i link youtube.com/watch?v=ID, youtu.be/ID e youtube.com/shorts/ID
+const youtubeId = (song.youtube || "").match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/)?.[1];
+if (youtubeId || song.spotify) {
   playButton.hidden = true;
   $("songEmbed").hidden = false;
-  $("songEmbed").innerHTML = `<iframe src="${escapeHtml(song.spotify)}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="La nostra canzone"></iframe>`;
+  $("songEmbed").innerHTML = youtubeId
+    ? `<iframe class="youtube" src="https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&playsinline=1" width="100%" frameborder="0" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen loading="lazy" title="La nostra canzone"></iframe>`
+    : `<iframe src="${escapeHtml(song.spotify)}" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="La nostra canzone"></iframe>`;
   vinyl.classList.add("spinning", "slow");
   $("tonearm").classList.add("on");
 } else {
@@ -267,7 +292,7 @@ audio.addEventListener("ended", () => {
   setPlaying(false);
   playButton.textContent = "▶ Ascolta di nuovo";
 });
-audio.addEventListener("error", () => { if (!song.spotify) audioHint.textContent = "La canzone arriverà presto… ♥"; });
+audio.addEventListener("error", () => { if (!song.spotify && !youtubeId) audioHint.textContent = "La canzone arriverà presto… ♥"; });
 
 // --- La lettera, scritta lettera per lettera ---
 $("letterSign").firstChild.textContent = CONFIG.letterSign + " ";
@@ -357,6 +382,7 @@ function openFinal() {
   setTimeout(() => { $("finalMessage").classList.add("shown"); burstHearts(); }, 700);
 }
 $("finalMessage").textContent = CONFIG.finalMessage;
+$("finalPaperText").textContent = CONFIG.finalPaper;
 finalEnvelope.addEventListener("click", openFinal);
 finalEnvelope.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openFinal(); } });
 
