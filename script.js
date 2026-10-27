@@ -14,10 +14,10 @@ const CONFIG = {
   // Foto: metti i file in public/images/ e scrivi il percorso in src (es. "public/images/foto1.jpg").
   // note è il pensiero che compare quando la foto viene aperta. Puoi aggiungere quante foto vuoi.
   photos: [
-    { src: "", caption: "Un ricordo da custodire", note: "" },
-    { src: "", caption: "Quel momento speciale", note: "" },
-    { src: "", caption: "Una giornata insieme", note: "" },
-    { src: "", caption: "Il mio posto preferito", note: "" },
+    { src: "public/images/foto1.jpg", caption: "Un nostro ricordo da custodire", note: "" },
+    { src: "public/images/foto2.jpg", caption: "Quel momento speciale", note: "" },
+    { src: "public/images/foto3.jpg", caption: "Una giornata assieme", note: "" },
+    { src: "public/images/foto4.jpg", caption: "Il mio posto preferito", note: "" },
   ],
 
   // Le tappe della vostra storia. date è libera (es. "15 giugno 2024"), puoi lasciarla vuota.
