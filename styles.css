@@ -27,3 +27,5 @@
 @media(max-width:430px){.polaroid img{height:115px}.clock-row b{font-size:1.05rem}.coupon-icon{flex-basis:50px;font-size:1.5rem}.coupon-stub{flex-basis:68px}.coupon-stamp{right:74px}}
 .modal-meta{margin:0 0 4px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:#a44b5b}.modal-content{max-height:92vh;overflow-y:auto}
 .song-embed iframe.youtube{aspect-ratio:16/9;height:auto}
+.final-message{white-space:pre-line}.final-paper p{margin:0}
+#finalPaperText{color:inherit}.final-paper{padding:10px 12px;font-size:.95rem;line-height:1.4}

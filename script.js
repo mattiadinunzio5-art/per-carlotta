@@ -73,7 +73,10 @@ const CONFIG = {
     { icon: "🗺️", title: "Una gita a sorpresa", text: "Tu prepari lo zaino, io la destinazione." },
   ],
 
-  finalMessage: "Carlotta, se potessi scegliere ancora, sceglierei di regalarti questo sorriso un'altra volta.",
+  // L'ultima sorpresa: finalPaper è il foglietto che esce dalla busta, finalMessage compare sotto.
+  // In finalMessage "\n" va a capo.
+  finalPaper: "Sei l'amore più grande che potesse capitarmi.",
+  finalMessage: "Tanti auguri, piccola mia!\nPer sempre tuo,\nMattia ♥",
 };
 
 const SECTIONS = ["memories", "time", "song", "letter", "reasons", "coupons"];
@@ -379,6 +382,7 @@ function openFinal() {
   setTimeout(() => { $("finalMessage").classList.add("shown"); burstHearts(); }, 700);
 }
 $("finalMessage").textContent = CONFIG.finalMessage;
+$("finalPaperText").textContent = CONFIG.finalPaper;
 finalEnvelope.addEventListener("click", openFinal);
 finalEnvelope.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openFinal(); } });
 
