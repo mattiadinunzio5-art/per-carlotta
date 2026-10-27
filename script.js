@@ -5,8 +5,11 @@ const CONFIG = {
   password: "",
   passwordHint: "suggerimento: qualcosa che sappiamo solo noi",
 
+  // Il bigliettino che esce dalla busta iniziale quando si apre.
+  introLetter: { title: "Per Carlotta,", text: "sei l'inaspettato che aspettavo di più." },
+
   // Il giorno in cui è cominciato tutto. Formato: "2024-06-15". Lascia "" finché non vuoi mostrare il contatore.
-  startDate: "",
+  startDate: "2026-05-30",
 
   // Foto: metti i file in public/images/ e scrivi il percorso in src (es. "public/images/foto1.jpg").
   // note è il pensiero che compare quando la foto viene aperta. Puoi aggiungere quante foto vuoi.
@@ -19,9 +22,9 @@ const CONFIG = {
 
   // Le tappe della vostra storia. date è libera (es. "15 giugno 2024"), puoi lasciarla vuota.
   timeline: [
-    { icon: "♥", date: "", title: "Il primo capitolo", text: "Il giorno in cui le nostre strade si sono incrociate." },
-    { icon: "✦", date: "", title: "Un momento speciale", text: "Un ricordo che porterò sempre con me." },
-    { icon: "∞", date: "", title: "Tutto quello che verrà", text: "La parte più bella della storia deve ancora essere scritta." },
+    { icon: "♥", date: "22 novembre 2025", title: "Il primo capitolo", text: "Il giorno in cui le nostre strade si sono incrociate." },
+    { icon: "✦", date: "8 settembre 2026 · a Roma", title: "Un momento speciale", text: "Un ricordo che porterò sempre con me." },
+    { icon: "∞", date: "13–16 novembre 2026 · a Marsiglia", title: "Tutto quello che verrà", text: "La parte più bella della storia deve ancora essere scritta." },
   ],
 
   // La canzone: o un file in public/audio/, oppure il link "embed" di Spotify
@@ -125,6 +128,8 @@ $("finalLink").addEventListener("click", () => {
 
 // --- Busta iniziale e parola segreta ---
 const introEnvelope = $("introEnvelope");
+$("introLetterTitle").textContent = CONFIG.introLetter.title;
+$("introLetterText").textContent = CONFIG.introLetter.text;
 let unlockedIntro = !CONFIG.password;
 const normalize = text => text.trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -137,7 +142,8 @@ function openIntro() {
   }
   if (introEnvelope.classList.contains("open")) return;
   introEnvelope.classList.add("open");
-  setTimeout(() => showScreen("menu"), reduceMotion ? 600 : 2600);
+  // lascia il tempo di leggere il bigliettino prima di passare alle sorprese
+  setTimeout(() => showScreen("menu"), reduceMotion ? 2500 : 4500);
 }
 $("openIntro").addEventListener("click", openIntro);
 introEnvelope.addEventListener("click", openIntro);
