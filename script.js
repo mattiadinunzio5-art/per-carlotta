@@ -41,11 +41,11 @@ const CONFIG = {
 
   // La lettera: ogni riga è un paragrafo.
   letter: [
-    "non sempre è facile trovare le parole giuste per dire a qualcuno quanto sia speciale.",
-    "Per questo ho voluto creare qualcosa che fosse solo tuo: un piccolo posto dove raccogliere ricordi, musica e parole che contano.",
-    "Grazie per essere una parte così bella della mia vita. Spero che, ogni volta che tornerai qui, ti ricordi quanto sei importante per me.",
+    "Non so bene da dove cominciare, perché ogni volta che provo a scriverti quello che sento le parole mi sembrano troppo piccole. Allora parto dall'inizio. Il 22 novembre 2025 le nostre strade si sono incrociate, e io non potevo immaginare quanto sarebbe cambiato tutto. Sei stata l'inaspettato che aspettavo di più: sei arrivata senza fare rumore e in poco tempo sei diventata la parte più bella delle mie giornate. Poi c'è stato il nostro primo bacio, al calorifero, dopo una serie interminabile di flirt e provocazioni che erano la rappresentazione totale del nostro modo di essere in quel periodo. Forse non il posto più romantico del mondo, ma per me è diventato il più rappresentativo: non me lo dimenticherò mai. A Como, nel nostro primo viaggio insieme, abbiamo imparato a conoscerci davvero. È lì che ho capito che eri speciale, a letto quella notte e che con te volevo vedere tutto il resto. Da allora ogni ricordo con te è diventato uno dei miei preferiti: la terrazza da cui vedevamo tutta Milano, quella volta a Parco Sempione, Roma, pianificata insieme e vissuta mano nella mano. E le nostre cene ogni trenta del mese, perché il mio posto preferito al mondo, in realtà, è quando sono a cena con te. Adesso ci aspetta Marsiglia, e non vedo l'ora di aggiungerla alla nostra storia. Mi piacciono le tue fossette, che riescono a cambiarmi la giornata. Il modo in cui ti entusiasmi per tutto, come nessun altro al mondo. Le facce buffe, il musino, il tuo modo di ridere che mi lascia a bocca aperta ad ammirarti. Il tuo profumo che sa proprio della persona che voglio sposare, e quanto sei bella appena sveglia quando ti stropicci gli occhietti. Mi piace il nostro mondo, fatto di cose che capiamo solo noi: le pappardelle, le canzoni che mi fanno pensare a te. Ma le cose che amo di te le trovi già nel barattolo. Qui volevo dirti l'altra metà, quella che in un bigliettino non ci sta: come sono io da quando ci sei tu. Sono più calmo, più paziente, meno di corsa. Mi accorgo di dettagli che prima non avrei mai guardato, e mi ritrovo a sorridere da solo nei momenti più a caso della giornata, solo perché mi è tornata in mente una tua faccia o una cosa che hai detto. Non ti prometto cose enormi, quelle le sanno promettere tutti. Ti prometto quelle piccole, che poi sono le più difficili: esserci anche nei giorni normali, non solo in quelli speciali; ascoltarti anche quando sono stanco; ricordarmi le cose che ti rendono felice e fartele trovare senza che tu debba chiederle. Ho provato più volte a trovare un modo per chiudere questa lettera e non ci sono riuscito. Forse è giusto così: con te non ho nessuna voglia di mettere un punto.",
   ],
   letterSign: "Con tutto il mio cuore,",
+  // La firma a mano sotto la lettera (un'immagine in public/images/). Lascia "" per non mostrarla.
+  signature: "public/images/firma.svg",
 
   // I bigliettini del barattolo: escono in ordine casuale, tranne l'ultimo della lista che esce sempre per ultimo.
   reasons: [
@@ -334,6 +334,7 @@ audio.addEventListener("error", () => { if (!song.spotify && !youtubeId) audioHi
 
 // --- La lettera, scritta lettera per lettera ---
 $("letterSign").firstChild.textContent = CONFIG.letterSign + " ";
+if (CONFIG.signature) { $("letterSignature").src = CONFIG.signature; $("letterSignature").hidden = false; }
 const letterBody = $("letterBody");
 let letterTimer = null;
 let letterDone = false;
