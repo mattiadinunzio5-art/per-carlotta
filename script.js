@@ -61,7 +61,7 @@ const CONFIG = {
     "Perché anche fare niente con te diventa speciale.",
     "Perché con te le cose semplici diventano ricordi.",
     "Perché sei gentile con tutti, anche se non tutti lo capiscono, ma io lo vedo e ne sono stra orgoglioso.",
-    "Perché mi fai sentire al sicuro.",
+    "Perché ogni volta che ci salutiamo conto già i minuti per rivederti.",
     "Perché le tue mani stanno perfette nelle mie.",
     "Perché quella volta a Parco Sempione è uno dei miei ricordi più belli.",
     "Perché sei unica, e non assomigli a nessun'altra.",
