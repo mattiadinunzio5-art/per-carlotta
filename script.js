@@ -36,19 +36,57 @@ const CONFIG = {
   ],
   letterSign: "Con tutto il mio cuore,",
 
-  // I bigliettini del barattolo: aggiungi, togli o riscrivi quelli che vuoi.
+  // I bigliettini del barattolo: escono in ordine casuale, tranne l'ultimo della lista che esce sempre per ultimo.
   reasons: [
-    "Perché il tuo sorriso riesce a cambiarmi la giornata.",
-    "Perché con te anche le cose più semplici diventano speciali.",
-    "Perché quando sono con te mi sento a casa.",
-    "Perché mi fai venire voglia di essere una persona migliore.",
-    "Perché ridere con te è una delle mie cose preferite al mondo.",
-    "Perché sai capirmi anche quando non dico niente.",
+    "Perché quelle fossette riescono a cambiarmi la giornata.",
+    "Perché quando sono con te mi sento al sicuro.",
+    "Perché ogni tuo messaggio mi fa sorridere come uno scemo.",
+    "Perché quel giorno, a Como, ho capito che eri speciale.",
+    "Perché ridere con te è una delle mie cose preferite.",
+    "Perché hai un cuore più grande di quanto tu creda: ogni volta che fai qualcosa di piccolo per me vorrei gridarti quanto sono fiero.",
+    "Perché con un tuo abbraccio mi si ferma il mondo.",
+    "Perché il tuo profumo mi resta addosso.",
+    "Perché insieme siamo tranquilli.",
+    "Perché sei forte anche quando pensi di non esserlo.",
+    "Perché nessuno al mondo si entusiasma come te.",
+    "Perché con te posso essere me stesso, senza filtri.",
+    "Perché mi piace quando mi chiami amore.",
+    "Perché non litighiamo.",
     "Perché sei bellissima, e non solo fuori.",
-    "Perché ogni volta che ti guardo mi sembra la prima.",
+    "Perché mi fai venire voglia di essere una persona migliore ogni giorno.",
+    "Perché fai le facce più buffe del mondo (tipo il musino).",
+    "Perché ogni volta che sento Scudo penso a te.",
+    "Perché il tuo modo di ridere è contagioso.",
+    "Perché con te il silenzio non è mai imbarazzante.",
+    "Perché anche fare niente con te diventa speciale.",
+    "Perché con te le cose semplici diventano ricordi.",
+    "Perché sei gentile con tutti, anche se non tutti lo capiscono, ma io lo vedo e ne sono stra orgoglioso.",
+    "Perché mi fai sentire al sicuro.",
+    "Perché le tue mani stanno perfette nelle mie.",
+    "Perché quella volta a Parco Sempione è uno dei miei ricordi più belli.",
+    "Perché sei unica, e non assomigli a nessun'altra.",
+    "Perché accanto a te anche le giornate storte finiscono bene.",
     "Perché sei la prima persona a cui voglio raccontare le cose belle.",
-    "Perché il tempo con te vola sempre troppo in fretta.",
+    "Perché abbiamo un mondo tutto nostro che capiamo solo noi.",
+    "Perché i tuoi occhi sono buoni.",
+    "Perché mi fai sentire importante.",
+    "Perché adoro quando ti arrabbi e poi non riesci a restare seria.",
+    "Perché quando mi chiami amoremio mi si scioglie il cuore.",
+    "Perché sei testarda nel modo più dolce del mondo.",
+    "Perché con te il tempo vola sempre troppo in fretta.",
+    "Perché ogni volta che ti guardo mi sembra la prima.",
+    "Perché quando sei felice si vede da lontano.",
+    "Perché hai sempre la parola giusta al momento giusto.",
+    "Perché sai capirmi anche quando non dico niente.",
+    "Perché pappardelle lo sappiamo solo noi due.",
     "Perché mi hai insegnato cose che nessun altro avrebbe potuto insegnarmi.",
+    "Perché mi piace guardarti quando non te ne accorgi.",
+    "Perché sei coraggiosa, anche nelle piccole cose.",
+    "Perché quando mi guardi mi sento fortunato.",
+    "Perché il primo bacio al calorifero non me lo dimenticherò mai.",
+    "Perché sei bella appena sveglia, e lo sai anche se dici di no.",
+    "Perché mi fai ridere anche quando non ne ho voglia.",
+    "Perché sogno un futuro e tu ci sei sempre dentro.",
     "Perché sei tu. E non c'è bisogno di nessun altro motivo.",
   ],
 
@@ -310,7 +348,12 @@ function updateReasonCount() {
     : "";
 }
 $("jar").addEventListener("click", () => {
-  if (!reasonOrder.length) reasonOrder = CONFIG.reasons.map((_, i) => i).sort(() => Math.random() - .5);
+  if (!reasonOrder.length) {
+    const last = CONFIG.reasons.length - 1;
+    const rest = CONFIG.reasons.map((_, i) => i).slice(0, last);
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    reasonOrder = [last, ...rest];
+  }
   const reason = CONFIG.reasons[reasonOrder.pop()];
   const note = $("reasonNote");
   note.classList.remove("pop");
