@@ -46,6 +46,8 @@ const CONFIG = {
     "Grazie per essere una parte così bella della mia vita. Spero che, ogni volta che tornerai qui, ti ricordi quanto sei importante per me.",
   ],
   letterSign: "Con tutto il mio cuore,",
+  // La firma a mano sotto la lettera (un'immagine in public/images/). Lascia "" per non mostrarla.
+  signature: "public/images/firma.svg",
 
   // I bigliettini del barattolo: escono in ordine casuale, tranne l'ultimo della lista che esce sempre per ultimo.
   reasons: [
@@ -334,6 +336,7 @@ audio.addEventListener("error", () => { if (!song.spotify && !youtubeId) audioHi
 
 // --- La lettera, scritta lettera per lettera ---
 $("letterSign").firstChild.textContent = CONFIG.letterSign + " ";
+if (CONFIG.signature) { $("letterSignature").src = CONFIG.signature; $("letterSignature").hidden = false; }
 const letterBody = $("letterBody");
 let letterTimer = null;
 let letterDone = false;
